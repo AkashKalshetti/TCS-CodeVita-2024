@@ -1,0 +1,166 @@
+Equations Puzzle
+Problem Description
+Kajol enjoys solving math puzzles, and one day she encountered an equation puzzle in the newspaper, which she decided to tackle. The puzzle includes two equations of the form A1x + B1y + C1z + D1w â‰¤ N1 and A2x + B2y + C2z + D2w â‰¤ N2 with given coefficients, meaning that the result after substituting the variables must not exceed N1 and N2 respectively.
+
+Additionally, there is another constraint for each equation: the sum of the variables (x + y + z + w) must not exceed the value R given as a part of input.
+
+The challenge is to determine the count of all possible results that can be obtained by substituting values into the variables in both equations, where N1 equal to N2, while adhering to this sum constraint individually for each equation. Refer examples section for better understanding.
+
+Constraints
+1 <= A, B, C, D <= 1000
+
+1 <= N <= 1000
+
+1 <= R <= 500
+
+The values of variables can be 0.
+
+Input
+First line consists of a string representing the first equation.
+
+Second line consists of a string representing the second equation.
+
+Third line consists of an integer denoting R.
+
+Output
+Print a single integer denoting the count of all possible results that can be obtained by substituting values into the variables in both equations while adhering to this sum constraint individually for each equation.
+
+Time Limit (secs)
+1
+
+Examples
+Example 1
+
+Input
+
+10x+7y+3z+5w<=15
+
+4x+9y+11z+15w<=23
+
+10
+
+Output
+
+4
+
+Explanation
+
+Two equations are given in the input and (x + y + z + w) for both equations must be less than or equal to 10.
+
+For variables (x, y, z, w) substitute values in parentheses in both equations as below.
+
+Substitute (0, 0, 0, 0) in equation1 and (0, 0, 0, 0) in equation2 will yield a value of 0 for both equations.
+
+Substitute (0, 0, 3, 0) in equation1 and (0, 1, 0, 0) in equation2 will yield a value of 9 for both equations.
+
+Substitute (0, 0, 4, 0) in equation1 and (3, 0, 0, 0) in equation2 will yield a value of 12 for both equations.
+
+Substitute (1, 0, 1, 0) in equation1 and (1, 1, 0, 0) in equation2 will yield a value of 13 for both equations.
+
+The above values of (x, y, z, w) yield N1 equal to N2 for all 4 cases.
+
+In each case, the sum of the variables i.e. (x + y + z + w) in the set is less than 10.
+
+Thus, the values from both the equations where N1 equals N2 are - {0, 9, 12, 13}
+
+No other such numbers exist, hence print 4.
+
+Example 2
+
+Input
+
+14x+7y+9z+19w<=40
+
+2x+3y+4z+5w<=20
+
+5
+
+Output
+
+6
+
+Explanation
+
+Two equations are given in the input and (x + y + z + w) for both equations must be less than or equal to 5.
+
+For variables (x, y, z, w) substitute values in parentheses in both equations as below.
+
+The values which can be resulted from both the equations are - {0, 7, 9, 14, 16, 18}
+
+Substitute (0, 0, 0, 0) in equation1 and (0, 0, 0, 0) in equation2 will yield a value of 0 for both equations.
+
+Substitute (0, 1, 0, 0) in equation1 and (0, 1, 1, 0) in equation2 will yield a value of 7 for both equations.
+
+Substitute (0, 0, 1, 0) in equation1 and (0, 3, 0, 0) in equation2 will yield a value of 9 for both equations.
+
+Substitute (1, 0, 0, 0) in equation1 and (0, 0, 1, 2) in equation2 will yield a value of 14 for both equations.
+
+Substitute (0, 1, 1, 0) in equation1 and (0, 2, 0, 2) in equation2 will yield a value of 16 for both equations.
+
+Substitute (0, 0, 2, 0) in equation1 and (0, 0, 2, 2) in equation2 will yield a value of 18 for both equations. The set (0, 6, 0, 0) will also work for equation2 but the sum is exceeding 5. Hence, we can't consider these values for (x, y, z, w).
+
+The above values of (x, y, z, w) yield N1 equal to N2 for all 6 cases.
+
+In each case, the sum of the variables i.e. (x + y + z + w) in the set is less than 5.
+
+Thus, the values from both the equations where N1 equals N2 are - {0, 7, 9, 14, 16, 18}
+
+No other such numbers exist, hence print 6.
+
+----------------------------------------------------------------------------------------------Code(NTO)---------------------------------------------------------------------------------------------------
+from itertools import product
+
+def parse_equation(equation):
+    """Parse the equation of the form 'Ax+By+Cz+Dw<=N'."""
+    # Split equation into terms before '<=' and the right-hand side value
+    left_side, right_side = equation.split('<=')
+    N = int(right_side.strip())
+    
+    # Coefficients are extracted from the left-hand side
+    terms = left_side.split('+')
+    coefficients = {}
+    
+    for term in terms:
+        if 'x' in term:
+            coefficients['x'] = int(term.split('x')[0]) if term.split('x')[0] else 1
+        elif 'y' in term:
+            coefficients['y'] = int(term.split('y')[0]) if term.split('y')[0] else 1
+        elif 'z' in term:
+            coefficients['z'] = int(term.split('z')[0]) if term.split('z')[0] else 1
+        elif 'w' in term:
+            coefficients['w'] = int(term.split('w')[0]) if term.split('w')[0] else 1
+    
+    return coefficients, N
+
+def count_valid_combinations(eq1, eq2, R):
+    """Count the number of valid combinations that satisfy the conditions."""
+    coeff1, N1 = parse_equation(eq1)
+    coeff2, N2 = parse_equation(eq2)
+    
+    # Variables x, y, z, w will range from 0 to R (since their sum must be <= R)
+    count = 0
+    valid_results = set()
+    
+    # Iterate over all possible combinations of x, y, z, w such that their sum <= R
+    for x, y, z, w in product(range(R+1), repeat=4):
+        if x + y + z + w <= R:
+            # Calculate the result for both equations
+            result1 = coeff1['x']*x + coeff1['y']*y + coeff1['z']*z + coeff1['w']*w
+            result2 = coeff2['x']*x + coeff2['y']*y + coeff2['z']*z + coeff2['w']*w
+            
+            # Check if both results are equal and less than or equal to N1 and N2
+            if result1 == result2 and result1 <= N1 and result2 <= N2:
+                valid_results.add(result1)
+    
+    return len(valid_results)
+
+# Read input
+eq1 = input().strip()
+eq2 = input().strip()
+R = int(input().strip())
+
+# Get the count of valid combinations
+result = count_valid_combinations(eq1, eq2, R)
+
+# Print the result
+print(result)
