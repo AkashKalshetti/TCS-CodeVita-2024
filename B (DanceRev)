@@ -1,0 +1,93 @@
+DanceRev
+Problem Description
+Dance Revolution is the pioneering series of the rhythm and dance genre in video games
+
+The core games involve placing your feet on certain tile according to the instruction on screen.
+
+Here you will have four tiles up, down, right, and left. You can move your leg one at time. Initially you can place your feet at any tile. Instructions will contain the list of tiles, where you must place one of your feet, one instruction after another.
+
+Given the instruction to place your feet, find the minimum number of times you must move your legs to different titles following the instruction. You can start with placing your legs at any position.
+
+Constraints
+1<= N <= 80
+
+Input
+First line consists of single integer N representing total number of instructions
+
+Next N lines consist of the instructions.
+
+Output
+Single integer representing minimum number of times you must move your legs
+
+Time Limit (secs)
+1
+
+Examples
+Example 1
+
+
+
+
+
+
+
+
+Explanation
+
+Assume you are starting with legs at tiles up and right.
+
+com.tcs.cv.automata.ei.middleware.DocxToHtmlConverter@6928f576:image2.png
+
+From the table you see, you had to move your legs three times, that is the minimum times will be required to follow the instructions.
+
+------------------------------------------------------------------------Code--------------------------------------------------------
+def min_leg_moves(N, instructions):
+    # Mapping tiles to indices for easier DP management
+    tile_map = {"up": 0, "down": 1, "left": 2, "right": 3}
+    instructions = [tile_map[inst] for inst in instructions]
+    
+    # Initialize DP table with infinity
+    dp = [[[float('inf')] * 4 for _ in range(4)] for _ in range(N + 1)]
+    
+    # Base case: No moves needed at the last instruction
+    for f1 in range(4):
+        for f2 in range(4):
+            dp[N][f1][f2] = 0
+    
+    # Fill DP table from the end to the beginning
+    for i in range(N - 1, -1, -1):
+        for f1 in range(4):
+            for f2 in range(4):
+                # Move the left foot
+                dp[i][f1][f2] = min(
+                    dp[i][f1][f2],
+                    (0 if f1 == instructions[i] else 1) + dp[i + 1][instructions[i]][f2]
+                )
+                # Move the right foot
+                dp[i][f1][f2] = min(
+                    dp[i][f1][f2],
+                    (0 if f2 == instructions[i] else 1) + dp[i + 1][f1][instructions[i]]
+                )
+    
+    # Find the minimum moves starting with any initial position
+    result = float('inf')
+    for f1 in range(4):
+        for f2 in range(4):
+            result = min(result, dp[0][f1][f2])
+    
+    return result
+
+# Main function for dynamic input handling
+if __name__ == "__main__":
+    import sys
+    input = sys.stdin.read
+    data = input().strip().split("\n")
+    
+    # First line: Number of instructions
+    N = int(data[0])
+    
+    # Next N lines: Instructions
+    instructions = data[1:]
+    
+    # Output the result without extra spaces or newlines
+    print(min_leg_moves(N, instructions))
