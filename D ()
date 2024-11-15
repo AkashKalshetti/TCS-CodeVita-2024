@@ -1,0 +1,123 @@
+MirrorMaze
+Problem Description
+In the mysterious island named Reflectia, there's a grid made up of M rows and N columns. Some cells in this grid are empty, while others hold mirrors which are placed diagonally to the cells. These mirrors are the reason why the island is called Reflectia - they bounce light beams in the opposite direction when the light hits them. The mirrors are placed in two ways viz. slanted forward (/) or slanted backwards (\).
+
+Rohit, a curious young explorer, decided to explore the Matrix with a flashlight in his hand as the island is very dark and is rumoured to be haunted. Once he entered, he aimed to find out the maximum number of cells the light could travel to, making a closed loop, within the grid when it is bounced on one of the mirrors in the grid. As it was too dark, he noted the structure of the grid and came out.
+
+Given the structure of the grid that Rohit noted, find out what's the maximum number of cells the light could travel to, making a closed loop [a closed polygon shape], within the grid when it is bounced on one of the mirrors in the grid.
+
+Constraints
+3 < M, N < 50
+
+Input
+First line contains two integers separated by space, representing M and N.
+
+Next M Lines contains N space separated characters viz. {'/', '\', '0'} representing the grid structure.
+
+Output
+Single integer representing the maximum number of cells that can be covered in the loop formed by the reflected light beam.
+
+Time Limit (secs)
+1
+
+examples:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------Solution----------------------------------------------------------------------------------------------------------
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+
+using namespace std;
+
+// Directional movement: Up, Down, Left, Right
+const int rowOffsets[] = {-1, 1, 0, 0};  // Row movement for Up/Down/Left/Right
+const int colOffsets[] = {0, 0, -1, 1};  // Column movement for Up/Down/Left/Right
+
+// Function to determine the next direction based on the current mirror and direction
+int getNewDirection(char mirror, int currentDirection) {
+    if (mirror == '/') {
+        if (currentDirection == 0) return 3;  // Up -> Right
+        if (currentDirection == 1) return 2;  // Down -> Left
+        if (currentDirection == 2) return 1;  // Left -> Down
+        if (currentDirection == 3) return 0;  // Right -> Up
+    } else if (mirror == '\\') {
+        if (currentDirection == 0) return 2;  // Up -> Left
+        if (currentDirection == 1) return 3;  // Down -> Right
+        if (currentDirection == 2) return 0;  // Left -> Up
+        if (currentDirection == 3) return 1;  // Right -> Down
+    }
+    return currentDirection;  // For '0' (empty space), continue in the same direction
+}
+
+// Function to calculate the length of the cycle starting from a given cell and direction
+int calculateCycleLength(int startX, int startY, int startDirection, vector<vector<char>>& grid, int rows, int cols) {
+    set<pair<pair<int, int>, int>> visitedPositions;  // (x, y, direction) to track visited cells and directions
+    vector<pair<int, int>> path;  // Track the path of the laser
+    int x = startX, y = startY, direction = startDirection;
+
+    while (x >= 0 && x < rows && y >= 0 && y < cols) {
+        if (visitedPositions.count({{x, y}, direction})) {
+            // Loop detected, calculate the cycle length
+            auto loopStart = find(path.begin(), path.end(), make_pair(x, y));
+            return distance(loopStart, path.end());  // Length of the loop
+        }
+        visitedPositions.insert({{x, y}, direction});
+        path.push_back({x, y});
+
+        // Move to the next cell based on the current direction
+        direction = getNewDirection(grid[x][y], direction);
+        x += rowOffsets[direction];
+        y += colOffsets[direction];
+    }
+
+    return 0;  // No loop found
+}
+
+int main() {
+    int rows, cols;
+    cin >> rows >> cols;  // Input grid dimensions
+
+    vector<vector<char>> grid(rows, vector<char>(cols));
+
+    // Input the grid structure (each cell is either '0', '/', or '\\')
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            cin >> grid[i][j];
+        }
+    }
+
+    int maxCycleLength = 0;
+
+    // Try starting from each cell in the grid
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            // Only start from a mirror cell ('/' or '\\')
+            if (grid[i][j] != '0') {
+                // Try all 4 possible directions (Up, Down, Left, Right)
+                for (int direction = 0; direction < 4; direction++) {
+                    maxCycleLength = max(maxCycleLength, calculateCycleLength(i, j, direction, grid, rows, cols));
+                }
+            }
+        }
+    }
+
+    // Output the maximum cycle length found
+    cout << maxCycleLength << endl;
+
+    return 0;
+}
