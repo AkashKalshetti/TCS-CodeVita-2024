@@ -1,0 +1,152 @@
+Aarav And Arjun
+Problem Description
+Aarav and Arjun, twin brothers in the eighth grade, enjoy spending time together playing. They have already learned about shapes, area, perimeter, and other geometric concepts.
+
+Their mother decided to introduce a game to enhance their geometric skills. She took some very thin straight and elastic sticks and arranged them on a 2D coordinate system, trying to form a closed figure.
+
+Given the positions of the sticks in the coordinate system, she asked both of them to make a choice viz. 1) the closed figure, or 2) the left-over stick pieces (all the pieces that do not take part in forming the closed figure).
+
+Aarav went with closed figure while Arjun went with left over pieces. Arjun is allowed to cut the left-over pieces in any manner that he chooses to attempt to fulfil his mother's ask as stated below.
+
+She asks both of them to calculate the things in the below order.
+
+Check whether closed figure is formed.
+If formed,
+Calculate its area.
+Find whether Arjun can form the same shape and sized figure using any combination of the sticks he got.
+If the sticks did not form a closed figure, they would ask her for a new arrangement. In that case, they will skip the previous steps i.e. calculation of area etc.
+Solve the same problem that Aarav and Arjun are trying to solve.
+
+Given the coordinates of the starting and ending points of the sticks placed in a 2D coordinate system, print the respective output following the output specification.
+
+Constraints
+1 <= N <= 20
+
+0 <= x, y coordinates <= 50
+
+There can at most be one closed figure.
+
+Closed figure is a figure with number of sides >= 3.
+
+Left-over sticks will not intersect with lines of closed figure, but themselves they may intersect.
+
+No more than two lines intersect at the same point.
+
+All computations must be accurate, including round-off, up to two decimal points.
+
+Input
+First line consists of an integer N, denoting the number of sticks placed in the 2D coordinate system.
+
+Next N lines consist of four space separated integers x1 y1 x2 y2, where (x1, y1) and (x2, y2) denote the starting and ending points of the stick.
+
+Output
+In the first line, print "Yes" or "No" indicating whether a closed figure is formed or not.
+
+If the first line of output is "Yes", then two more lines should be printed.
+
+Second line - Print "Yes" if Arjun can arrange the leftover stick pieces to form a figure that is both the same shape and the same size. He is allowed to cut and join the leftover sticks. Also use the part of sticks hanging out of closed figure.
+Third line - Print the area of the closed figure up to 2 decimal points.
+Time Limit (secs)
+1
+
+
+
+
+
+
+
+------------------------------------------------------------------------------------------Code (NTO)-----------------------------------------------------------------------------------------------------
+from collections import defaultdict
+import math
+
+# Function to calculate the area using Shoelace formula
+def calculate_area(polygon):
+    n = len(polygon)
+    area = 0
+    for i in range(n):
+        x1, y1 = polygon[i]
+        x2, y2 = polygon[(i + 1) % n]
+        area += x1 * y2 - y1 * x2
+    return abs(area) / 2.0
+
+# Function to calculate the length of a stick
+def stick_length(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+# Check if a cycle is formed
+def is_closed_polygon(edges):
+    adj = defaultdict(list)
+    degree = defaultdict(int)
+    points = set()
+    
+    for x1, y1, x2, y2 in edges:
+        p1 = (x1, y1)
+        p2 = (x2, y2)
+        adj[p1].append(p2)
+        adj[p2].append(p1)
+        degree[p1] += 1
+        degree[p2] += 1
+        points.add(p1)
+        points.add(p2)
+    
+    # Check if degree of every vertex in the cycle is 2
+    for point in points:
+        if degree[point] != 2:
+            return False, []
+
+    # Extract the closed polygon
+    visited = set()
+    polygon = []
+    
+    def dfs(node, parent):
+        if node in visited:
+            return True
+        visited.add(node)
+        polygon.append(node)
+        for neighbor in adj[node]:
+            if neighbor != parent:
+                if dfs(neighbor, node):
+                    return True
+        return False
+
+    start = next(iter(points))
+    dfs(start, None)
+    
+    return len(polygon) >= 3, polygon
+
+# Main Function
+def solve():
+    import sys
+    input = sys.stdin.read
+    data = input().strip().split("\n")
+    
+    # Number of sticks
+    N = int(data[0])
+    sticks = [tuple(map(int, line.split())) for line in data[1:]]
+    
+    # Check for closed polygon
+    is_closed, polygon = is_closed_polygon(sticks)
+    
+    if not is_closed:
+        print("No")
+        return
+    
+    print("Yes")
+    
+    # Calculate area of the closed polygon
+    area = calculate_area(polygon)
+    
+    # Calculate leftover stick lengths
+    total_stick_length = sum(stick_length(*stick) for stick in sticks)
+    closed_perimeter = sum(stick_length(*polygon[i], *polygon[(i + 1) % len(polygon)]) for i in range(len(polygon)))
+    leftover_length = total_stick_length - closed_perimeter
+    
+    # Check if leftover sticks can form the same polygon
+    if math.isclose(leftover_length, closed_perimeter) and math.isclose(area, area):
+        print("Yes")
+    else:
+        print("No")
+    
+    # Print the area
+    print(f"{area:.2f}")
+
